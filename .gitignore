@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# playwright-bdd generated output
+.features-gen/
+
+# Cucumber / BDD reports
+cucumber-report.json
+cucumber-report.html
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Prisma
+prisma/*.db

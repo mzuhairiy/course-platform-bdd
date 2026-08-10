@@ -1,0 +1,20 @@
+{
+  "name": "course-platform-bdd",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "bddgen": "bddgen",
+    "test": "npm run bddgen && npx playwright test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^26.2.0",
+    "playwright-bdd": "^9.2.0",
+    "typescript": "^7.0.2"
+  }
+}
