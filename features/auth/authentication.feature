@@ -26,7 +26,7 @@ Feature: Authentication
     Then I should be redirected to the login page
 
     Examples:
-      | email                   | password      | expected_page    |  
-      | admin@example.com       | Password123!  | dashboard        |
-      | student@example.com     | Password123!  | dashboard        |
-      | instructor@example.com  | Password123!  | dashboard        |
+      | email                   | password      | expected_page         |  
+      | admin@example.com       | Password123!  | admin dashboard       |
+      | student@example.com     | Password123!  | student dashboard     |
+      | instructor@example.com  | Password123!  | instructor dashboard  |
