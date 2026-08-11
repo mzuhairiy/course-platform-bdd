@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "bddgen": "bddgen",
-    "test": "npm run bddgen && npx playwright test",
+    "test": "npx playwright test",
+    "test:smoke": "npx playwright test --grep @smoke",
+    "test:critical": "npx playwright test --grep @critical",
+    "test:rbac": "npx playwright test --grep @rbac",
     "report": "playwright show-report"
   },
   "keywords": [],

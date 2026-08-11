@@ -5,6 +5,7 @@ Feature: Role-Based Access Control
     So that students, instructors, and admins can only reach what they are permitted to see.
 
   @negative
+  # Covers users who hit a protected URL while logged out — e.g. a bookmark or shared link
   Scenario Outline: Unauthenticated access to a protected area redirects to sign in, then back again after logging in
     Given I am not logged in
     When I navigate directly to the "<protected page>" page
@@ -20,6 +21,7 @@ Feature: Role-Based Access Control
       | admin dashboard      | admin@example.com       | Password123!  |
 
   @negative
+  # Covers users who are logged in but do not have the required role to access a specific page
   Scenario Outline: A user without the required role sees the forbidden page
     Given I am logged in as "<email>"
     When I navigate directly to the "<restricted page>" page
