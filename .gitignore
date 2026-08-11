@@ -38,3 +38,6 @@ npm-debug.log*
 
 # Prisma
 prisma/*.db
+
+# AI
+.claude

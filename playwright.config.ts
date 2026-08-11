@@ -8,8 +8,8 @@ export default defineConfig({
     testDir,
     reporter: 'html',
     use: {
-        baseURL: 'http://localhost:3001',
-        headless: true,
+        baseURL: 'http://localhost:3002',
+        headless: false,
         screenshot: 'only-on-failure',
         trace: 'on-first-retry',
     },

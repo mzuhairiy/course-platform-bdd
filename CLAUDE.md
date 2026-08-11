@@ -1,7 +1,7 @@
 # CLAUDE.md — course-platform-automation
 
 Playwright BDD automation repo untuk CoursePlatform SUT.
-SUT harus jalan di http://localhost:3000 sebelum test dijalankan.
+SUT harus jalan di http://localhost:3002 sebelum test dijalankan.
 
 ## Stack
 

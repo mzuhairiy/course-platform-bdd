@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "bddgen": "bddgen",
-    "test": "npm run bddgen && npx playwright test"
+    "test": "npm run bddgen && npx playwright test",
+    "report": "playwright show-report"
   },
   "keywords": [],
   "author": "",
