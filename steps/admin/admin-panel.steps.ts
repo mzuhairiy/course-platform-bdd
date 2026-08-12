@@ -26,11 +26,12 @@ Then('the course totals should account for every course under moderation', async
     expect(totals.draft + totals.published + totals.archived).toBe(underModeration);
 });
 
-Then('the section should explain that it is coming later', async ({ page }) => {
-    // The section name is carried on the URL, so the placeholder is resolved
-    // from the path rather than repeated as a step argument.
-    const section = new URL(page.url()).pathname.split('/').pop() ?? '';
-    await new AdminSectionsPage(page).waitForPlaceholder(section);
+Then('the transactions area should summarise payment activity', async ({ page }) => {
+    await new AdminSectionsPage(page).waitForTransactionSummary();
+});
+
+Then('the categories area should list the course categories', async ({ page }) => {
+    await new AdminSectionsPage(page).waitForCategoryManager();
 });
 
 // Raised by Server Actions across the whole admin panel, so it lives here

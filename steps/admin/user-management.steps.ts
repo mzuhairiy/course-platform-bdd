@@ -2,6 +2,7 @@ import { expect } from '@playwright/test';
 import { createBdd } from 'playwright-bdd';
 
 import { AdminUsersPage } from '../../pages/admin/admin-users.page';
+import { ForbiddenPage } from '../../pages/shared/forbidden.page';
 import { InstructorDashboardPage } from '../../pages/instructor/instructor-dashboard.page';
 import { setUserRole } from '../../support/db';
 import { ACCOUNTS, ROLES } from '../../support/test-data';
@@ -57,10 +58,9 @@ Then('I should not be asked to confirm a role change', async ({ page }) => {
     expect(await new AdminUsersPage(page).isConfirmationPromptShown()).toBe(false);
 });
 
-Then('I should still be able to open the instructor workspace', async ({ page }) => {
-    const instructorDashboard = new InstructorDashboardPage(page);
-    await instructorDashboard.goto();
-    await instructorDashboard.waitForLoad();
+Then('I should be refused access to the instructor workspace', async ({ page }) => {
+    await new InstructorDashboardPage(page).goto();
+    await new ForbiddenPage(page).waitForLoad();
 });
 
 After({ tags: '@restores-user-roles' }, async () => {

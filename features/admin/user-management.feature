@@ -44,13 +44,10 @@ Feature: Admin User Management
     When I change the role of "student@example.com" to "STUDENT"
     Then I should not be asked to confirm a role change
 
-  @rbac @negative @security @restores-user-roles
-  # Pins current behaviour: the role travels in the session token, so a
-  # withdrawn permission stays usable until the person signs in again. Raised
-  # as a defect — this scenario should be inverted once the SUT is fixed.
-  Scenario: A withdrawn teaching permission stays usable until the next sign in
+  @rbac @high @security @restores-user-roles
+  Scenario: Withdrawing a teaching permission takes effect on the very next request
     Given "student2@example.com" currently holds the "INSTRUCTOR" role
     And I am logged in as "student2@example.com"
     And I should see the "instructor dashboard" page
     When the role of "student2@example.com" is changed to "STUDENT"
-    Then I should still be able to open the instructor workspace
+    Then I should be refused access to the instructor workspace

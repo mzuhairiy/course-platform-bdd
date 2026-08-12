@@ -25,14 +25,16 @@ Feature: Admin Course Moderation
     When I look for "Excel untuk Analisis Bisnis" in the public catalogue
     Then it should not be offered in the public catalogue
 
-  @edge-case @restores-course-state
-  # Pins current behaviour: restoring does NOT return a course to Published, it
-  # drops it to Draft, and the admin panel offers no way to publish it again.
-  # Raised as a defect — invert this scenario once the SUT is fixed.
-  Scenario: Restoring an archived course returns it to draft rather than republishing it
-    When I restore the course "Manajemen Produk untuk Pemula"
+  @high @restores-course-state
+  # A round trip on the same course, rather than restoring the seeded archived
+  # one: only a course this suite archived itself has a previous status to be
+  # restored to.
+  Scenario: Archiving and then restoring a course puts it back in the catalogue
+    When I archive the course "Excel untuk Analisis Bisnis"
+    Then the course "Excel untuk Analisis Bisnis" should be listed as "Archived"
+    When I restore the course "Excel untuk Analisis Bisnis"
     Then I should see a confirmation message
-    And the course "Manajemen Produk untuk Pemula" should be listed as "Draft"
+    And the course "Excel untuk Analisis Bisnis" should be listed as "Published"
 
   @edge-case
   Scenario: The available action reflects whether a course is archived

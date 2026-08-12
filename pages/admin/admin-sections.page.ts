@@ -1,10 +1,10 @@
 import { Page } from '@playwright/test';
 import { BasePage } from '../base.page';
 
-// Covers the admin areas that are scaffolded but not yet built (transactions,
-// categories). They are identical apart from their testids, so one object with
-// a section lookup avoids two near-identical files — the same reasoning as
-// CourseManagementPage.
+// Covers the smaller admin areas reached from the sidebar (transactions,
+// categories). They share a shape — navigate, then assert the area rendered —
+// so one object with a section lookup avoids two near-identical files, the same
+// reasoning as CourseManagementPage.
 const SECTION_PATHS: Record<string, string> = {
     transactions: '/admin/transactions',
     categories: '/admin/categories',
@@ -13,11 +13,6 @@ const SECTION_PATHS: Record<string, string> = {
 const SECTION_ROOTS: Record<string, string> = {
     transactions: 'admin-transactions',
     categories: 'admin-categories',
-};
-
-const SECTION_PLACEHOLDERS: Record<string, string> = {
-    transactions: 'admin-transactions-placeholder',
-    categories: 'admin-categories-placeholder',
 };
 
 function lookup(map: Record<string, string>, section: string): string {
@@ -33,6 +28,14 @@ export class AdminSectionsPage extends BasePage {
         super(page);
     }
 
+    private get transactionSummary() {
+        return this.page.getByTestId('admin-transaction-summary');
+    }
+
+    private get categoryManager() {
+        return this.page.getByTestId('category-manager');
+    }
+
     async goto(section: string) {
         await super.goto(lookup(SECTION_PATHS, section));
         await this.waitForLoad(section);
@@ -42,9 +45,11 @@ export class AdminSectionsPage extends BasePage {
         await this.page.getByTestId(lookup(SECTION_ROOTS, section)).waitFor({ state: 'visible' });
     }
 
-    async waitForPlaceholder(section: string) {
-        await this.page
-            .getByTestId(lookup(SECTION_PLACEHOLDERS, section))
-            .waitFor({ state: 'visible' });
+    async waitForTransactionSummary() {
+        await this.transactionSummary.waitFor({ state: 'visible' });
+    }
+
+    async waitForCategoryManager() {
+        await this.categoryManager.waitFor({ state: 'visible' });
     }
 }
