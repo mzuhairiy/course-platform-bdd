@@ -13,6 +13,12 @@ export class NotificationPage extends BasePage {
         return this.page.getByTestId('success-toast');
     }
 
+    // Raised when a course action is refused — publishing a course with no
+    // lessons, for instance. Same short lifetime as the success toast.
+    private get courseActionErrorToast() {
+        return this.page.getByTestId('course-action-error');
+    }
+
     async waitForSuccessMessage() {
         await this.successToast.waitFor({ state: 'visible' });
     }
@@ -20,5 +26,14 @@ export class NotificationPage extends BasePage {
     async getSuccessMessage() {
         await this.waitForSuccessMessage();
         return (await this.successToast.textContent())?.trim() ?? '';
+    }
+
+    async waitForCourseActionError() {
+        await this.courseActionErrorToast.waitFor({ state: 'visible' });
+    }
+
+    async getCourseActionErrorMessage() {
+        await this.waitForCourseActionError();
+        return (await this.courseActionErrorToast.textContent())?.trim() ?? '';
     }
 }
