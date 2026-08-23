@@ -13,6 +13,7 @@ Feature: Authentication
     And I click the login button
     Then I should be redirected to the "<expected_page>" page
 
+    # title-format: <email> lands on <expected_page>
     Examples:
       | email                   | password      | expected_page         |
       | admin@example.com       | Password123!  | admin dashboard       |
@@ -25,6 +26,7 @@ Feature: Authentication
     And I click the login button
     Then I should see an error message indicating invalid credentials
 
+    # title-format: <email> with password <password> is rejected
     Examples:
       | email                     | password         |
       | student@example.com       | WrongPassword1!   |
@@ -36,6 +38,7 @@ Feature: Authentication
     When I click the logout button
     Then I should be redirected to the home page
 
+    # title-format: <email> logs out
     Examples:
       | email                   |
       | admin@example.com       |

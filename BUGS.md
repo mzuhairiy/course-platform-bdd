@@ -7,8 +7,8 @@ is fixed.
 
 | ID | Title | Severity | Priority | Status |
 |---|---|---|---|---|
-| BUG-001 | Unarchiving a course sets it to Draft, with no admin-side way to republish | Major | High | Open |
-| BUG-002 | Revoking a user's role does not take effect until they sign in again | Critical | High | Open |
+| BUG-001 | Unarchiving a course sets it to Draft, with no admin-side way to republish | Major | High | **Fixed — verified 2026-08-12** |
+| BUG-002 | Revoking a user's role does not take effect until they sign in again | Critical | High | **Fixed — verified 2026-08-12** |
 
 ---
 
@@ -58,15 +58,25 @@ by an admin.
 - Observed transition: `PUBLISHED → archive → ARCHIVED → unarchive → DRAFT` (confirmed in both the UI badge and the DB).
 - Public-catalogue impact confirmed separately via `/courses?q=Excel+untuk+Analisis`: `PUBLISHED` → 1 result, `ARCHIVED` → 0, `DRAFT` → 0.
 
-**Pinned by**
+**Resolution — verified 2026-08-12**
 
-`features/admin/course-moderation.feature` — "Restoring an archived course returns it to draft
-rather than republishing it". Invert this scenario once fixed.
+Fixed by recording the course's prior status in a new `Course.preArchiveStatus` column
+(migration `20260812012109_add_course_pre_archive_status`) and restoring it on unarchive.
+Verified end to end against the running SUT: `PUBLISHED → archive → ARCHIVED → unarchive →
+PUBLISHED`, confirmed in both the UI badge and the database.
 
-**Note**
+Regression covered by `features/admin/course-moderation.feature` — "Archiving and then
+restoring a course puts it back in the catalogue". That scenario deliberately archives and
+restores the *same* course rather than restoring the seeded archived one, because only a
+course archived through the app has a prior status recorded to restore to.
 
-Whether unarchive *should* land on Published is a product decision. What makes this a defect
-either way is the missing recovery path: from an admin's seat the action is one-way.
+**Note on the rollout**
+
+The application code shipped ahead of its migration. For a period the column did not exist in
+the database and **both** Archive and Unarchive returned HTTP 500 (Prisma `P2022:
+The column preArchiveStatus does not exist in the current database`), replacing the page with
+the error boundary and taking course moderation down entirely — briefly worse than the
+original bug. Worth ensuring migrations are applied with the deploy that depends on them.
 
 ---
 
@@ -115,13 +125,13 @@ signing back in.
 - Verified sequence: promote → fresh sign-in reaches `/instructor` (`instructor-dashboard` visible, `forbidden-page` absent) → demote to STUDENT (confirmed in DB) → same session still shows `instructor-dashboard` on navigation *and* after reload.
 - Control comparison: a STUDENT-role account signing in fresh correctly receives the forbidden page at `/instructor`, confirming the authorization check itself works and the stale token is the cause.
 
-**Pinned by**
+**Resolution — verified 2026-08-12**
 
-`features/admin/user-management.feature` — "A withdrawn teaching permission stays usable until
-the next sign in". Invert this scenario once fixed.
+Fixed: the role is now resolved per request rather than trusted from the session token.
+Verified end to end against the running SUT with the demoted user's session left open
+throughout — after demotion the very next request to `/instructor` redirects to `/forbidden`,
+both on fresh navigation and after a hard reload. No sign-out is required, and the user is not
+silently signed out either.
 
-**Note**
-
-Rated Critical for the security exposure, but it is bounded by session lifetime rather than
-being indefinite, and exploiting it requires an already-authenticated session. If your triage
-scale reserves Critical for unauthenticated exposure, Major is defensible.
+Regression covered by `features/admin/user-management.feature` — "Withdrawing a teaching
+permission takes effect on the very next request".

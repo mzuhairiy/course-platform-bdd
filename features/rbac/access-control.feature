@@ -14,6 +14,7 @@ Feature: Role-Based Access Control
     And I click the login button
     Then I should be redirected to the "<protected page>" page
 
+    # title-format: <email> reaches <protected page> after signing in
     Examples:
       | protected page       | email                   | password      |
       | student dashboard    | student@example.com     | Password123!  |
@@ -27,6 +28,7 @@ Feature: Role-Based Access Control
     When I navigate directly to the "<restricted page>" page
     Then I should see the forbidden page
 
+    # title-format: <email> is forbidden from <restricted page>
     Examples:
       | email                   | restricted page      |
       | student@example.com     | instructor dashboard |
@@ -45,6 +47,7 @@ Feature: Role-Based Access Control
     When I navigate directly to the "marketing home" page
     Then I should be redirected to the "<expected_page>" page
 
+    # title-format: <email> is redirected to <expected_page>
     Examples:
       | email                   | expected_page        |
       | instructor@example.com  | instructor dashboard |
@@ -62,6 +65,7 @@ Feature: Role-Based Access Control
     When I navigate directly to the "settings" page
     Then I should be redirected to the "<expected_settings_page>" page
 
+    # title-format: <email> is sent to <expected_settings_page>
     Examples:
       | email                   | expected_settings_page |
       | instructor@example.com  | instructor settings    |
@@ -73,6 +77,7 @@ Feature: Role-Based Access Control
     When I navigate directly to the "<management page>" of a course owned by another instructor
     Then I should see the forbidden page
 
+    # title-format: <management page> of another instructor's course is forbidden
     Examples:
       | management page   |
       | course edit       |

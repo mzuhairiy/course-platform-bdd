@@ -47,6 +47,7 @@ Feature: Admin Course Moderation
     Then the moderation list should not be empty
     And every listed course should match "<value>"
 
+    # title-format: filtering by <criterion> "<value>"
     Examples:
       | criterion  | value        |
       | status     | Draft        |
