@@ -1,4 +1,4 @@
-@high @admin
+@high @admin @moderation
 Feature: Admin Course Moderation
     As a platform administrator
     I want to review and moderate every course on the platform

@@ -6,9 +6,9 @@
   "scripts": {
     "bddgen": "bddgen",
     "test": "npx playwright test",
-    "test:smoke": "npx playwright test --grep @smoke",
-    "test:critical": "npx playwright test --grep @critical",
-    "test:rbac": "npx playwright test --grep @rbac",
+    "test:smoke": "TAG=@smoke playwright test",
+    "test:critical": "TAG=@critical playwright test",
+    "test:rbac": "TAG=@rbac playwright test",
     "report": "playwright show-report"
   },
   "keywords": [],

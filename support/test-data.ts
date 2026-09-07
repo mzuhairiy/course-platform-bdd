@@ -120,6 +120,28 @@ export const CHECKOUT_COURSE = {
     price: 179000,
 } as const;
 
+// Free course owned by the certificate scenarios alone. Ten lectures — the
+// shortest published curriculum in the seed — so completing it outright costs
+// the fewest rows to set up, and nothing else in the suite enrols in it.
+export const CERTIFICATE_COURSE = {
+    id: 'course_vibe_coding',
+    slug: 'vibe-coding-produktif-dengan-ai',
+    title: 'Vibe Coding: Produktif dengan AI Coding Tools',
+    firstLectureId: 'lec_vibe-coding-produktif-dengan-ai_0_0',
+} as const;
+
+// A course whose title matches exactly one published course, so a keyword
+// search has a single unambiguous result to land on. Registered as a full
+// fixture so the search scenarios can reuse the shared "sent to the
+// course page for ..." assertion.
+export const SEARCHABLE_COURSE = {
+    id: 'course_flutter',
+    slug: 'flutter-aplikasi-mobile-pertama',
+    title: 'Flutter: Bangun Aplikasi Mobile Pertamamu',
+    firstLectureId: 'lec_flutter-aplikasi-mobile-pertama_0_0',
+    keyword: 'Flutter',
+} as const;
+
 // Course student@example.com is already enrolled in by the seed. Its quiz is
 // the one the quiz scenarios exercise.
 export const ENROLLED_COURSE = {
@@ -147,6 +169,8 @@ const COURSES_BY_TITLE: Record<string, CourseFixture> = {
     [PAID_COURSE.title]: PAID_COURSE,
     [CHECKOUT_COURSE.title]: CHECKOUT_COURSE,
     [ENROLLED_COURSE.title]: ENROLLED_COURSE,
+    [CERTIFICATE_COURSE.title]: CERTIFICATE_COURSE,
+    [SEARCHABLE_COURSE.title]: SEARCHABLE_COURSE,
 };
 
 export function resolveCourse(title: string): CourseFixture {
@@ -155,6 +179,73 @@ export function resolveCourse(title: string): CourseFixture {
         throw new Error(`Unknown course: "${title}"`);
     }
     return course;
+}
+
+// --- Course catalogue -------------------------------------------------------
+//
+// No size constants live here on purpose. The catalogue's contents and its page
+// size are both the SUT's business, and copying either one into the suite only
+// creates a second place to be wrong. The browse scenarios assert size by
+// comparison instead — the first page holds less than the whole, the parts add
+// up to the whole, filtering narrows.
+
+// Seeded DRAFT course. Named here so a scenario can assert the catalogue never
+// offers it without a feature file having to know it is a draft by id.
+export const UNPUBLISHED_COURSE = {
+    title: 'Public Speaking untuk Profesional',
+    keyword: 'Public Speaking',
+} as const;
+
+// A keyword no seeded title or subtitle contains, for the no-results path.
+export const UNMATCHED_KEYWORD = 'zzzznothing';
+
+// Business-facing filter names -> the value the catalogue carries in its URL:
+// category by slug, level by the enum, price by the radio's own value. The
+// filter control's testid uses the lowercased form of the same value, which the
+// page object derives — the URL is the authority because it is what makes a
+// filtered view shareable.
+const CATALOGUE_CATEGORY_VALUES: Record<string, string> = {
+    'AI & Machine Learning': 'ai-ml',
+    Business: 'business',
+    'Data & Analytics': 'data-analytics',
+    Design: 'design',
+    'Personal Development': 'personal-development',
+    'Product & Engineering': 'product-engineering',
+    Programming: 'programming',
+};
+
+const CATALOGUE_LEVEL_VALUES: Record<string, string> = {
+    Beginner: 'BEGINNER',
+    Intermediate: 'INTERMEDIATE',
+    Advanced: 'ADVANCED',
+};
+
+const CATALOGUE_PRICE_VALUES: Record<string, string> = {
+    All: 'all',
+    Free: 'free',
+    Paid: 'paid',
+};
+
+const CATALOGUE_FILTER_VALUES: Record<string, Record<string, string>> = {
+    category: CATALOGUE_CATEGORY_VALUES,
+    level: CATALOGUE_LEVEL_VALUES,
+    price: CATALOGUE_PRICE_VALUES,
+};
+
+// Resolves "level" + "Advanced" -> "ADVANCED". Throws loudly so a typo in a
+// feature file fails on the spot rather than filtering by nothing.
+export function resolveCatalogueFilter(criterion: string, businessName: string): string {
+    const values = CATALOGUE_FILTER_VALUES[criterion];
+    if (!values) {
+        throw new Error(`Unknown catalogue filter: "${criterion}"`);
+    }
+
+    const value = values[businessName];
+    if (value === undefined) {
+        throw new Error(`Unknown ${criterion} value: "${businessName}"`);
+    }
+
+    return value;
 }
 
 const QUIZ = ENROLLED_COURSE.quizId;

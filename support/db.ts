@@ -167,3 +167,51 @@ export function getLessonTitlesInOrder(courseId: string): string[] {
     );
     return rows ? rows.split('\n') : [];
 }
+
+// --- Certificate state ------------------------------------------------------
+
+// Marks every lecture of a course finished for a learner and stamps the
+// enrolment complete. Certificate eligibility reads Enrollment.completedAt
+// while the UI reads the per-lecture rows, so both have to be set for the two
+// to agree. Watching ten lectures through the player would take minutes and
+// prove nothing the video-progress scenarios don't already prove, so the
+// starting state is written directly (CLAUDE.md).
+export function completeCourse(email: string, courseId: string) {
+    const user = userId(email);
+    query(
+        `INSERT INTO "LectureProgress" (id, "userId", "lectureId", "watchedSeconds", "isCompleted", "completedAt", "updatedAt")
+         SELECT 'bdd_' || substr(md5(random()::text || l.id), 1, 20), '${user}', l.id, 9999, true, now(), now()
+         FROM "Lecture" l
+         JOIN "Section" s ON s.id = l."sectionId"
+         WHERE s."courseId" = '${courseId}'
+         ON CONFLICT ("userId", "lectureId")
+         DO UPDATE SET "isCompleted" = true, "completedAt" = now(), "updatedAt" = now();`,
+    );
+    query(
+        `UPDATE "Enrollment" SET "completedAt" = now()
+         WHERE "userId"='${user}' AND "courseId"='${courseId}' AND "completedAt" IS NULL;`,
+    );
+}
+
+export function deleteCertificate(email: string, courseId: string) {
+    query(
+        `DELETE FROM "Certificate" WHERE "userId"='${userId(email)}' AND "courseId"='${courseId}';`,
+    );
+}
+
+// Empty string when no certificate has been issued — the caller compares it,
+// so "not issued" and "issued as X" are both expressible without a null check.
+export function getCertificateNumber(email: string, courseId: string): string {
+    return query(
+        `SELECT "certificateNumber" FROM "Certificate"
+         WHERE "userId"='${userId(email)}' AND "courseId"='${courseId}';`,
+    );
+}
+
+export function countCertificates(email: string, courseId: string): number {
+    return Number(
+        query(
+            `SELECT count(*) FROM "Certificate" WHERE "userId"='${userId(email)}' AND "courseId"='${courseId}';`,
+        ),
+    );
+}

@@ -8,9 +8,10 @@ Feature: Admin Panel Overview
     Given I am logged in as "admin@example.com"
 
   @smoke
-  Scenario: The dashboard summarises the course catalogue
+  Scenario: The dashboard opens with a summary of the platform
     When I open the admin dashboard
-    Then the course totals should account for every course under moderation
+    Then I should see the platform totals
+    And I should see how many courses sit at each status
 
   @medium
   Scenario: The transactions area summarises payment activity

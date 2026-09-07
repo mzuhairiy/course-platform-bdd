@@ -12,6 +12,7 @@ is fixed.
 | BUG-003 | Choosing lesson type "Quiz" crashes the add-lesson dialog — quiz lessons cannot be created | Major | High | Open — reported 2026-08-23 |
 | BUG-004 | Video lesson form rejects the relative video URL the seed itself uses | Minor | Medium | Open — reported 2026-08-23 |
 | BUG-005 | Cancelled payment shows untranslated "Pembayaran cancelled" | Minor | Low | Open — reported 2026-08-23 |
+| BUG-006 | Admin dashboard reports the platform's total revenue as "Free" | Minor | Medium | Open — reported 2026-09-07 |
 
 ---
 
@@ -281,3 +282,66 @@ that names the state it represents.
 `steps/student/checkout.steps.ts` maps the business phrase "cancelled" onto the
 `status-failed` testid and the `CANCELLED` stored status, with a comment pointing here.
 Update that map when the testid is renamed.
+
+---
+
+## BUG-006
+
+**Title:** The admin dashboard reports the platform's total revenue as "Free" when no payments have completed
+
+**Reported:** 2026-09-07
+**Severity:** Minor — cosmetic, but it is a headline figure on the admin dashboard and it reads as a category error rather than a number. An administrator checking revenue is shown a word that means the opposite of what the card measures.
+**Priority (suggested):** Medium
+**Reproducibility:** Always, whenever total completed revenue is 0
+**Environment:** Chromium (Playwright), SUT at http://localhost:3002 (`course-platform-app` container, Next.js App Router), Postgres 16 (`course-platform-db`), standard seed data, role ADMIN (`admin@example.com`)
+
+**Detail**
+
+The "Total revenue" stat card on `/admin` renders its value through `formatPrice()`
+(`src/lib/format.ts`), the same helper the course cards use. That helper has a special
+case for free courses:
+
+```ts
+export function formatPrice(amount: number): string {
+  if (amount <= 0) return "Free";
+  return idrFormatter.format(amount);
+}
+```
+
+On a course card "Free" is the right word. On a revenue total it is not a price at all —
+it is a sum — so a platform that has taken no money reports **"Total revenue: Free"**
+instead of "Rp 0". The standard seed ships zero transactions, so this is what the
+dashboard shows out of the box.
+
+The other three cards on the same row are unaffected: they show plain counts ("18", "0",
+"22"), including "Total transactions: 0" — so the same dashboard is willing to render a
+zero as a zero one card to the left.
+
+**Steps to Reproduce**
+
+1. Sign in as `admin@example.com` (`Password123!`).
+2. Confirm no payments have completed: `SELECT count(*) FROM "Transaction";` returns 0 on the standard seed.
+3. Open `/admin` and read the "Total revenue" card.
+
+**Expected result**
+
+A currency figure for the amount taken — "Rp 0" — so the card always reads as a sum.
+
+**Actual result**
+
+The card reads "Total revenue" / "Free". Confirmed via the rendered testids:
+
+```
+stat-users        => "18"
+stat-transactions => "0"
+stat-revenue      => "Free"     <-- no figure at all
+stat-published    => "22"
+```
+
+**Automation impact**
+
+`steps/admin/admin-panel.steps.ts` asserts the revenue card is present but deliberately
+does **not** read a figure from it, with a comment pointing here. Change that to assert a
+currency figure when this is fixed. Found while replacing that scenario's previous
+cross-page total reconciliation with a plain "the dashboard is populated" check — the
+weaker assertion surfaced a real defect the stricter one had been walking straight past.
