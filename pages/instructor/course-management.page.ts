@@ -55,6 +55,10 @@ export class CourseManagementPage extends BasePage {
         return this.page.getByTestId('delete-confirm-button');
     }
 
+    private get deleteError() {
+        return this.page.getByTestId('delete-course-error');
+    }
+
     private get manageLessonsLink() {
         return this.page.getByTestId('manage-lessons-link');
     }
@@ -140,6 +144,13 @@ export class CourseManagementPage extends BasePage {
     async confirmDeleteByTypingName(title: string) {
         await this.deleteConfirmInput.fill(title);
         await this.deleteConfirmButton.click();
+    }
+
+    // A refusal (an enrolled student, for instance) keeps the dialog open with
+    // an inline error rather than the redirect a successful delete gives.
+    async getDeleteErrorMessage() {
+        await this.deleteError.waitFor({ state: 'visible' });
+        return (await this.deleteError.textContent())?.trim() ?? '';
     }
 
     async openLessonManager() {

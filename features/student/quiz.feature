@@ -47,3 +47,26 @@ Feature: Quiz Engine
   @edge-case
   Scenario: A quiz with no time limit shows no countdown
     Then no countdown should be shown
+
+  Scenario: Passing the quiz marks its lecture as finished
+    When I answer "all correct"
+    And I submit the quiz
+    Then the quiz lecture should be marked as finished
+
+  @edge-case
+  Scenario: Reopening an unfinished quiz resumes the same attempt
+    When I leave the quiz without submitting
+    And I start the quiz again
+    And I answer "all correct"
+    And I submit the quiz
+    Then I should score 100 percent
+    And only one quiz attempt should be on record
+
+  Scenario: Every submitted attempt is kept in the quiz's history
+    When I answer "all wrong"
+    And I submit the quiz
+    And I take the quiz again
+    And I answer "all correct"
+    And I submit the quiz
+    And I reload the lecture
+    Then I should see 2 attempts in the quiz history

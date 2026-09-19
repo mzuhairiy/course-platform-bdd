@@ -8,6 +8,7 @@ import { NotificationPage } from '../../pages/shared/notification.page';
 import {
     createDraftCourseWithLessons,
     deleteCoursesByTitle,
+    enrollStudent,
     getCourseIdByTitle,
     getCourseStatusById,
     setCourseStatus,
@@ -69,6 +70,13 @@ Given('I have a published scratch course', async () => {
     setCourseStatus(scratchCourseId, 'PUBLISHED');
 });
 
+// Setup only — the enrolment itself is not the behaviour under test, and the
+// scratch course (enrolment included) is torn down by this file's own After
+// hook, so no separate cleanup is needed here.
+Given('a student is enrolled in the scratch course', async () => {
+    enrollStudent(ACCOUNTS.studentFresh, scratchCourseId);
+});
+
 When('I create a course titled {string}', async ({ page }, title) => {
     const form = new CourseFormPage(page);
     await form.gotoNew();
@@ -117,6 +125,12 @@ When('I confirm the title', async ({ page }) => {
     await page.waitForURL((url) => url.pathname === '/instructor/courses');
 });
 
+// Same action as above, without the redirect wait — a delete that gets
+// refused never navigates anywhere, it just surfaces an inline error.
+When('I type the course title to confirm', async ({ page }) => {
+    await new CourseManagementPage(page).confirmDeleteByTypingName(SCRATCH_COURSE.title);
+});
+
 Then('the course should be a draft', async ({ page }) => {
     await new CourseManagementPage(page).waitForDraftState();
     expect(getCourseStatusById(scratchCourseId)).toBe('DRAFT');
@@ -158,6 +172,12 @@ Then('the course should no longer be listed', async ({ page }) => {
     const courses = new InstructorCoursesPage(page);
     await courses.waitForLoad();
     expect(await courses.isCourseListed(SCRATCH_COURSE.title)).toBe(false);
+});
+
+Then('deletion should be refused because a student is enrolled', async ({ page }) => {
+    expect(await new CourseManagementPage(page).getDeleteErrorMessage()).toBe(
+        'Course dengan siswa terdaftar tidak bisa dihapus.',
+    );
 });
 
 // Scoped to this feature's own tag, not the shared @instructor one: the two

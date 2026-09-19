@@ -52,3 +52,10 @@ Feature: Checkout and Payment
   Scenario: A free course cannot be taken through checkout
     When I go straight to the checkout page for "Dasar Data Visualization"
     Then I should be sent to the course page for "Dasar Data Visualization"
+
+  @edge-case
+  Scenario: Paying twice for the same order never creates a second transaction
+    Given I have started paying for "Digital Marketing untuk UMKM"
+    When I go straight to the checkout page for "Digital Marketing untuk UMKM"
+    And I pay with "bank_transfer"
+    Then only one order should exist for "Digital Marketing untuk UMKM"

@@ -3,7 +3,7 @@ import { createBdd } from 'playwright-bdd';
 
 import { LecturePage } from '../../pages/student/lecture.page';
 import { QuizPage } from '../../pages/student/quiz.page';
-import { deleteLectureProgress, deleteQuizAttempts } from '../../support/db';
+import { countQuizAttempts, deleteLectureProgress, deleteQuizAttempts } from '../../support/db';
 import { ACCOUNTS, ENROLLED_COURSE, resolveCourse, resolveQuizAnswers } from '../../support/test-data';
 
 const { Given, When, Then, After } = createBdd();
@@ -36,6 +36,21 @@ When('I take the quiz again', async ({ page }) => {
     await new QuizPage(page).retry();
 });
 
+// Leaving without submitting means the attempt row is still "in progress" on
+// the server — reloading only resets the client's own phase back to intro.
+When('I leave the quiz without submitting', async ({ page }) => {
+    await new LecturePage(page).reload();
+});
+
+When('I start the quiz again', async ({ page }) => {
+    const quiz = new QuizPage(page);
+    await quiz.waitForIntro();
+    await quiz.start();
+});
+
+// "I reload the lecture" is defined in video-progress.steps.ts and reused here
+// as-is — reloading is the same action regardless of which feature asks for it.
+
 Then('I should score {int} percent', async ({ page }, expectedScore) => {
     expect(await new QuizPage(page).getScorePercentage()).toBe(expectedScore);
 });
@@ -58,6 +73,23 @@ Then('I should be able to review all {int} questions', async ({ page }, question
 
 Then('no countdown should be shown', async ({ page }) => {
     expect(await new QuizPage(page).isTimerVisible()).toBe(false);
+});
+
+// Waited for, not just checked once: the checkmark comes from the
+// router.refresh() the quiz fires after grading, which lands a moment after
+// the result view itself does.
+Then('the quiz lecture should be marked as finished', async ({ page }) => {
+    await new LecturePage(page).waitForComplete();
+});
+
+// Not observable from the UI (the intro's history only lists submitted
+// attempts), so this reads the row count directly — see countQuizAttempts.
+Then('only one quiz attempt should be on record', async () => {
+    expect(countQuizAttempts(ACCOUNTS.student, ENROLLED_COURSE.quizId)).toBe(1);
+});
+
+Then('I should see {int} attempts in the quiz history', async ({ page }, count) => {
+    expect(await new QuizPage(page).getAttemptHistoryCount()).toBe(count);
 });
 
 // Attempts and the progress a passing attempt records are this suite's own

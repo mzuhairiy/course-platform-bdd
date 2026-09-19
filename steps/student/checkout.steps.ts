@@ -8,6 +8,7 @@ import { NotFoundPage } from '../../pages/shared/not-found.page';
 import { PurchaseHistoryPage } from '../../pages/student/purchase-history.page';
 import { SignInPage } from '../../pages/auth/sign-in.page';
 import {
+    countTransactions,
     deleteEnrollment,
     deleteTransactions,
     enrollStudent,
@@ -170,6 +171,14 @@ Then('I should see {int} order awaiting payment', async ({ page }, expectedCount
 
 Then('I should see the not found page', async ({ page }) => {
     await new NotFoundPage(page).waitForLoad();
+});
+
+// A second "Bayar Sekarang" reuses the same PENDING row rather than minting a
+// new order (createCheckoutAction) — not observable from either page the flow
+// passes through, so this is one of the few checks that has to read the
+// database directly.
+Then('only one order should exist for {string}', async ({}, title) => {
+    expect(countTransactions(ACCOUNTS.studentFresh, resolveCourse(title).id)).toBe(1);
 });
 
 After({ tags: '@checkout' }, async () => {

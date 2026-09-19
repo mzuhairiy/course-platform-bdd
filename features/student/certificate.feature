@@ -1,8 +1,3 @@
-# AUTOMATION_PLAN §5.6 also lists two verification scenarios — "/verify shows a
-# valid certificate" and "verification fails for an unknown number". They are not
-# here because the SUT has no /verify route and no lookup by certificate number:
-# the number is stored but never surfaced outside the PDF. Add them if that page
-# ships.
 @high @certificate
 Feature: Course Completion Certificate
     As a student
@@ -57,3 +52,22 @@ Feature: Course Completion Certificate
     When I ask for the certificate of "Vibe Coding: Produktif dengan AI Coding Tools" directly
     Then no certificate should be handed over
     And no certificate should be recorded against my name
+
+  @smoke
+  Scenario: A genuine certificate can be verified by anyone, without signing in
+    Given I have finished every lesson of "Vibe Coding: Produktif dengan AI Coding Tools"
+    And I have already been issued a certificate for "Vibe Coding: Produktif dengan AI Coding Tools"
+    And I am not logged in
+    When I verify that certificate
+    Then the certificate should be shown as valid
+    And it should show the course and its instructor by name
+
+  @negative
+  Scenario: A certificate number nobody holds is reported as not found
+    When I verify the certificate number "CERT-2026-ZZZZZ"
+    Then I should be told the certificate was not found
+
+  @negative @edge-case
+  Scenario: A malformed certificate number is rejected before any lookup
+    When I verify the certificate number "not-a-real-format"
+    Then I should be told the certificate number's format is invalid

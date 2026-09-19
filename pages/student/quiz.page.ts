@@ -52,6 +52,10 @@ export class QuizPage extends BasePage {
         return this.page.getByTestId('quiz-timer');
     }
 
+    private get attemptRows() {
+        return this.page.getByTestId('quiz-attempt-row');
+    }
+
     // Every answer shares the "quiz-option" testid, so the option's own
     // data-option-id is the only way to pick one deterministically. Selecting
     // by visible answer text would break on a copy edit and couldn't tell the
@@ -85,6 +89,12 @@ export class QuizPage extends BasePage {
         await this.result.waitFor({ state: 'visible' });
     }
 
+    // For the timer's own auto-submit: nothing is clicked, so the only signal
+    // is the result view eventually appearing on its own.
+    async waitForResult() {
+        await this.result.waitFor({ state: 'visible' });
+    }
+
     async retry() {
         await this.retryButton.click();
         await this.inProgress.waitFor({ state: 'visible' });
@@ -107,5 +117,12 @@ export class QuizPage extends BasePage {
 
     async isRetryOffered() {
         return (await this.retryButton.count()) > 0;
+    }
+
+    // Only shown on the intro screen, and only once at least one attempt has
+    // been submitted — so this also asserts we are looking at that screen.
+    async getAttemptHistoryCount() {
+        await this.intro.waitFor({ state: 'visible' });
+        return this.attemptRows.count();
     }
 }

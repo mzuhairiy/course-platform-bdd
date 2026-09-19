@@ -1,6 +1,7 @@
 import { expect } from '@playwright/test';
 import { createBdd } from 'playwright-bdd';
 
+import { CourseDetailPage } from '../../pages/student/course-detail.page';
 import { LecturePage } from '../../pages/student/lecture.page';
 import { deleteEnrollment, deleteLectureProgress, enrollStudent } from '../../support/db';
 import { ACCOUNTS, PROGRESS_COURSE, resolveCourse } from '../../support/test-data';
@@ -56,6 +57,21 @@ Then('the lecture should still ask me to watch more', async ({ page }) => {
 Then('the course progress should be higher than before', async ({ page }) => {
     const progressAfter = await new LecturePage(page).getCourseProgressPercentage();
     expect(progressAfter).toBeGreaterThan(progressBeforeWatching);
+});
+
+// "Continue Learning" on the course's own page carries the same resume link as
+// the dashboard card — this is the public course page's copy of that button.
+When('I open the course page and resume where I left off', async ({ page }) => {
+    const course = new CourseDetailPage(page);
+    await course.goto(PROGRESS_COURSE.slug);
+    await course.clickCallToAction();
+});
+
+Then('I should land on the second lecture', async ({ page }) => {
+    await page.waitForURL(
+        (url) => url.pathname === `/learn/${PROGRESS_COURSE.id}/${PROGRESS_COURSE.secondLectureId}`,
+    );
+    await new LecturePage(page).waitForLoad();
 });
 
 After({ tags: '@video-progress' }, async () => {

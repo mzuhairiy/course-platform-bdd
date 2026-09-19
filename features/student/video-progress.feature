@@ -29,3 +29,8 @@ Feature: Video Progress Tracking
     Given I note the current course progress
     When I watch the lecture video to the end
     Then the course progress should be higher than before
+
+  Scenario: Resuming a course lands on the first unfinished lecture
+    When I watch the lecture video to the end
+    And I open the course page and resume where I left off
+    Then I should land on the second lecture

@@ -5,6 +5,7 @@ import { CertificatePage } from '../../pages/student/certificate.page';
 import { CourseDetailPage } from '../../pages/student/course-detail.page';
 import { LecturePage } from '../../pages/student/lecture.page';
 import { SignInPage } from '../../pages/auth/sign-in.page';
+import { VerifyPage } from '../../pages/student/verify.page';
 import {
     completeCourse,
     countCertificates,
@@ -153,6 +154,40 @@ Then('no certificate should be handed over', async () => {
 
 Then('no certificate should be recorded against my name', async () => {
     expect(countCertificates(ACCOUNTS.studentFresh, CERTIFICATE_COURSE.id)).toBe(0);
+});
+
+// The instructor CERTIFICATE_COURSE ships with in the seed — fixed data, so
+// asserted by name rather than just "some string".
+const CERTIFICATE_COURSE_INSTRUCTOR = 'Citra Permata';
+
+When('I verify that certificate', async ({ page }) => {
+    const verify = new VerifyPage(page);
+    await verify.goto();
+    await verify.submit(certificateNumberBefore);
+});
+
+When('I verify the certificate number {string}', async ({ page }, number) => {
+    const verify = new VerifyPage(page);
+    await verify.goto();
+    await verify.submit(number);
+});
+
+Then('the certificate should be shown as valid', async ({ page }) => {
+    expect(await new VerifyPage(page).isValid()).toBe(true);
+});
+
+Then('it should show the course and its instructor by name', async ({ page }) => {
+    const verify = new VerifyPage(page);
+    expect(await verify.getCourseName()).toBe(CERTIFICATE_COURSE.title);
+    expect(await verify.getInstructorName()).toBe(CERTIFICATE_COURSE_INSTRUCTOR);
+});
+
+Then('I should be told the certificate was not found', async ({ page }) => {
+    expect(await new VerifyPage(page).isNotFound()).toBe(true);
+});
+
+Then("I should be told the certificate number's format is invalid", async ({ page }) => {
+    expect(await new VerifyPage(page).isFormatRejected()).toBe(true);
 });
 
 After({ tags: '@certificate' }, async () => {

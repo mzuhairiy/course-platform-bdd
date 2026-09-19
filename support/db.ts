@@ -83,6 +83,16 @@ export function deleteQuizAttempts(email: string) {
     query(`DELETE FROM "QuizAttempt" WHERE "userId"='${userId(email)}';`);
 }
 
+// Whether starting (or resuming) a quiz twice created a second row is not
+// observable from the UI — the intro screen's history list only ever shows
+// submitted attempts — so this is one of the few assertions that has to read
+// the database directly.
+export function countQuizAttempts(email: string, quizId: string): number {
+    return Number(
+        query(`SELECT count(*) FROM "QuizAttempt" WHERE "userId"='${userId(email)}' AND "quizId"='${quizId}';`),
+    );
+}
+
 export function deleteTransactions(email: string, courseId: string) {
     query(
         `DELETE FROM "Transaction" WHERE "userId"='${userId(email)}' AND "courseId"='${courseId}';`,

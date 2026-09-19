@@ -108,6 +108,9 @@ export const PROGRESS_COURSE = {
     slug: 'deep-work-fokus-di-era-distraksi',
     title: 'Deep Work: Fokus di Era Distraksi',
     firstLectureId: 'lec_deep-work-fokus-di-era-distraksi_0_0',
+    // Second lecture in curriculum order — where "Continue Learning" should
+    // land once the first one is finished.
+    secondLectureId: 'lec_deep-work-fokus-di-era-distraksi_0_1',
 } as const;
 
 // Paid course the enrolment scenarios only look at — they assert the offer is
@@ -174,6 +177,21 @@ export const ENROLLED_COURSE = {
     passingScore: 60,
 } as const;
 
+// The only seeded quiz with a time limit (120s + the server's 5s grace) —
+// what the timer/auto-submit scenarios need. Nobody is enrolled in it by the
+// seed, which doubles as the fixture for "cannot open a quiz before
+// enrolling".
+export const TIMED_QUIZ_COURSE = {
+    id: 'course_api_testing',
+    slug: 'api-testing-postman',
+    title: 'Belajar API Testing dengan Postman dari Nol',
+    firstLectureId: 'lec_api-testing-postman_0_0',
+    quizLectureId: 'lec_api-testing-postman_2_quiz',
+    quizId: 'quiz_api-testing-postman',
+    timeLimitSeconds: 120,
+    passingScore: 60,
+} as const;
+
 // Business-facing course titles -> the fixture a step needs, so feature files
 // name courses the way a reader would and steps resolve ids and slugs.
 export type CourseFixture = {
@@ -189,6 +207,7 @@ const COURSES_BY_TITLE: Record<string, CourseFixture> = {
     [PAID_COURSE.title]: PAID_COURSE,
     [CHECKOUT_COURSE.title]: CHECKOUT_COURSE,
     [ENROLLED_COURSE.title]: ENROLLED_COURSE,
+    [TIMED_QUIZ_COURSE.title]: TIMED_QUIZ_COURSE,
     [CERTIFICATE_COURSE.title]: CERTIFICATE_COURSE,
     [SEARCHABLE_COURSE.title]: SEARCHABLE_COURSE,
     [REVIEW_COURSE.title]: REVIEW_COURSE,
@@ -311,6 +330,17 @@ export function resolveQuizAnswers(setName: string): readonly string[] {
     }
     return answers;
 }
+
+const TIMED_QUIZ = TIMED_QUIZ_COURSE.quizId;
+
+// Deliberately leaves questions 3-5 unanswered — the timer scenario submits
+// with these still on the page, so the score (2/5 -> 40%) proves the SUT
+// graded only what was actually answered when time ran out.
+export const TIMED_QUIZ_PARTIAL_ANSWERS: readonly string[] = [
+    `${TIMED_QUIZ}_q1_a`,
+    `${TIMED_QUIZ}_q2_a`,
+    `${TIMED_QUIZ}_q2_b`,
+];
 
 // --- Instructor journeys ----------------------------------------------------
 

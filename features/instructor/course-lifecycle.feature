@@ -53,3 +53,12 @@ Feature: Instructor Course Lifecycle
     Then deletion should be blocked until I confirm the title
     When I confirm the title
     Then the course should no longer be listed
+
+  @negative
+  Scenario: A course with an enrolled student cannot be deleted
+    Given I have a published scratch course
+    And a student is enrolled in the scratch course
+    When I ask to delete the course
+    And I type the course title to confirm
+    Then deletion should be refused because a student is enrolled
+    And the course should be published
