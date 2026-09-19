@@ -10,6 +10,16 @@ export const ACCOUNTS = {
     instructorOther: 'instructor2@example.com',
 } as const;
 
+// The account the sign-up scenarios create. A fixed address rather than a
+// random one so cleanup can name it exactly, and so a leftover from a run that
+// crashed before its After hook is cleared by the next run's Given rather than
+// failing it as a duplicate.
+export const NEW_ACCOUNT = {
+    name: 'Budi Tester',
+    email: 'bdd-signup@example.com',
+    password: 'Password123!',
+} as const;
+
 export const ROLES = {
     student: 'STUDENT',
     instructor: 'INSTRUCTOR',
@@ -142,6 +152,16 @@ export const SEARCHABLE_COURSE = {
     keyword: 'Flutter',
 } as const;
 
+// Free course owned by the review scenarios alone. The seed ships no reviews at
+// all, so this course starts with none and every average the scenarios assert
+// is one they created themselves.
+export const REVIEW_COURSE = {
+    id: 'course_ml_fundamentals',
+    slug: 'machine-learning-fundamentals',
+    title: 'Machine Learning Fundamentals',
+    firstLectureId: 'lec_machine-learning-fundamentals_0_0',
+} as const;
+
 // Course student@example.com is already enrolled in by the seed. Its quiz is
 // the one the quiz scenarios exercise.
 export const ENROLLED_COURSE = {
@@ -171,6 +191,7 @@ const COURSES_BY_TITLE: Record<string, CourseFixture> = {
     [ENROLLED_COURSE.title]: ENROLLED_COURSE,
     [CERTIFICATE_COURSE.title]: CERTIFICATE_COURSE,
     [SEARCHABLE_COURSE.title]: SEARCHABLE_COURSE,
+    [REVIEW_COURSE.title]: REVIEW_COURSE,
 };
 
 export function resolveCourse(title: string): CourseFixture {

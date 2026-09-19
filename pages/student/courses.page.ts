@@ -131,6 +131,20 @@ export class CoursesPage extends BasePage {
         return (await this.courseCards.filter({ hasText: title }).count()) > 0;
     }
 
+    // The rating a course card advertises, as "4.0(1)" -> 4.0. NaN when the
+    // card shows no rating at all, which is what an unreviewed course looks
+    // like: the block is left out rather than showing zero.
+    async getCourseCardRating(title: string) {
+        const card = this.courseCards.filter({ hasText: title }).first();
+        await card.waitFor({ state: 'visible' });
+        const rating = card.getByTestId('card-rating');
+        if ((await rating.count()) === 0) {
+            return Number.NaN;
+        }
+        const figure = ((await rating.textContent()) ?? '').match(/(\d+(?:\.\d+)?)/);
+        return figure ? Number(figure[1]) : Number.NaN;
+    }
+
     async isEmptyStateShown() {
         return (await this.emptyState.count()) > 0;
     }

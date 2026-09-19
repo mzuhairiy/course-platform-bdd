@@ -215,3 +215,59 @@ export function countCertificates(email: string, courseId: string): number {
         ),
     );
 }
+
+// --- Review state -----------------------------------------------------------
+
+export function deleteReview(email: string, courseId: string) {
+    query(`DELETE FROM "Review" WHERE "userId"='${userId(email)}' AND "courseId"='${courseId}';`);
+}
+
+// Every review on a course, whoever wrote it — used by cleanup, since a
+// scenario that has a second student review the same course leaves two rows.
+export function deleteAllReviews(courseId: string) {
+    query(`DELETE FROM "Review" WHERE "courseId"='${courseId}';`);
+}
+
+// Starting state for scenarios about editing, withdrawing, or living alongside
+// someone else's review — the act of writing the first one is covered by its
+// own scenario and does not need repeating through the UI (CLAUDE.md).
+export function createReview(
+    email: string,
+    courseId: string,
+    rating: number,
+    comment: string,
+) {
+    const user = userId(email);
+    query(
+        `INSERT INTO "Review" (id, "userId", "courseId", rating, comment, "createdAt", "updatedAt")
+         VALUES ('bdd_' || substr(md5(random()::text), 1, 20), '${user}', '${courseId}', ${rating},
+                 '${comment.replace(/'/g, "''")}', now(), now())
+         ON CONFLICT ("userId", "courseId")
+         DO UPDATE SET rating = ${rating}, comment = EXCLUDED.comment, "updatedAt" = now();`,
+    );
+}
+
+export function countReviews(courseId: string): number {
+    return Number(query(`SELECT count(*) FROM "Review" WHERE "courseId"='${courseId}';`));
+}
+
+// Empty string when the student has not reviewed the course, so "not reviewed"
+// and "reviewed 4 stars" are both expressible without a null check.
+export function getReviewRating(email: string, courseId: string): string {
+    return query(
+        `SELECT rating::text FROM "Review" WHERE "userId"='${userId(email)}' AND "courseId"='${courseId}';`,
+    );
+}
+
+// --- Account state ----------------------------------------------------------
+
+// Removes an account created by the sign-up scenarios. Cascades take the rows
+// that hang off it, and it is called before the scenario as well as after, so a
+// run that died mid-way cannot block the next one with a duplicate email.
+export function deleteUser(email: string) {
+    query(`DELETE FROM "User" WHERE email='${email}';`);
+}
+
+export function userExists(email: string): boolean {
+    return query(`SELECT count(*) FROM "User" WHERE email='${email}';`) !== '0';
+}

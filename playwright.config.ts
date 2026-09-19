@@ -6,10 +6,11 @@ const testDir = defineBddConfig({
     steps: 'steps/**/*.ts',
 });
 
-// Feature files run in parallel, and three of them change what the public
+// Feature files run in parallel, and four of them change what the public
 // catalogue and the admin listings hold: the instructor lifecycle publishes and
 // unpublishes a scratch course, lesson management seeds one straight into the
-// database, and admin moderation archives a seeded course. Any feature that
+// database, admin moderation archives a seeded course, and the review
+// scenarios put a star rating on a course card. Any feature that
 // reads those platform-wide figures can therefore watch them move mid-scenario,
 // which is what made the browse suite fail with "expected 23, received 22" for
 // reasons that had nothing to do with browsing.
@@ -21,7 +22,7 @@ const testDir = defineBddConfig({
 //
 // One consequence worth knowing: if a mutator fails, Playwright skips the
 // project that depends on it rather than running it anyway.
-const CATALOGUE_MUTATORS = '@course-lifecycle|@lessons|@moderation';
+const CATALOGUE_MUTATORS = '@course-lifecycle|@lessons|@moderation|@review';
 const CATALOGUE_READERS = '@browse';
 
 // A tag filter has to be composed into each project's own grep rather than
@@ -48,6 +49,13 @@ export default defineConfig({
         trace: 'retain-on-failure',
     },
     timeout: 30000,
+    // Left off deliberately, and stated rather than inherited. Several features
+    // share a single fixture — one fresh student account, one course each — and
+    // rely on Playwright running the scenarios within a file one at a time.
+    // Turning this on would let scenarios in the same feature overwrite each
+    // other's starting state; the review feature fails immediately under
+    // `--repeat-each` with several workers for exactly that reason.
+    fullyParallel: false,
     // Deliberately no retries. A retry that turns red into green hides exactly
     // the cross-feature races the projects above exist to remove — this suite
     // was quietly masking two of them, one of them for weeks.
