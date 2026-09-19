@@ -20,13 +20,13 @@ const { Given, When, Then, After } = createBdd();
 
 const SEED_PASSWORD = 'Password123!';
 
-// Business-facing payment outcomes -> the status testid the SUT renders. Note
-// that cancelling renders "status-failed" even though the stored status is
-// CANCELLED and nothing failed (BUG-005).
+// Business-facing payment outcomes -> the status testid the SUT renders.
+// BUG-005 is fixed: cancelling now renders "status-cancelled" with the
+// correct Indonesian copy, distinct from the genuine "status-failed" state.
 const ORDER_STATE_TESTIDS: Record<string, string> = {
     'awaiting payment': 'pending',
     paid: 'success',
-    cancelled: 'failed',
+    cancelled: 'cancelled',
 };
 
 // ... and the status the transaction is expected to hold in the database.

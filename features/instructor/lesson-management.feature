@@ -19,6 +19,12 @@ Feature: Lesson Management
     Then the course should have 4 lessons
     And "New Reading Lesson" should be the last lesson
 
+  Scenario: A quiz lesson can be added
+    When I add a quiz lesson called "New Quiz Lesson"
+    Then the course should have 4 lessons
+    And "New Quiz Lesson" should be the last lesson
+    And "New Quiz Lesson" should offer its quiz builder
+
   @smoke
   Scenario: Lessons can be reordered
     When I move the first lesson down

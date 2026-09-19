@@ -337,7 +337,7 @@ export const LESSON_COURSE = {
     slug: 'bdd-lessons-course',
 } as const;
 
-// The lesson form requires an absolute URL for video lessons — the seed itself
-// stores a relative path ("/sample-lecture.mp4") that the form rejects, so this
-// placeholder exists purely to get past validation (BUG-004).
-export const SCRATCH_LESSON_VIDEO_URL = 'https://cdn.example.com/bdd-sample.mp4';
+// The relative path every seeded lecture actually stores in Lecture.videoUrl.
+// The lesson form used to reject it (BUG-004, fixed) — matching the seed's own
+// shape now means a course built through the UI looks like one built by it.
+export const SCRATCH_LESSON_VIDEO_URL = '/sample-lecture.mp4';

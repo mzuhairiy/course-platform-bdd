@@ -9,10 +9,11 @@ is fixed.
 |---|---|---|---|---|
 | BUG-001 | Unarchiving a course sets it to Draft, with no admin-side way to republish | Major | High | **Fixed — verified 2026-08-12** |
 | BUG-002 | Revoking a user's role does not take effect until they sign in again | Critical | High | **Fixed — verified 2026-08-12** |
-| BUG-003 | Choosing lesson type "Quiz" crashes the add-lesson dialog — quiz lessons cannot be created | Major | High | Open — reported 2026-08-23 |
-| BUG-004 | Video lesson form rejects the relative video URL the seed itself uses | Minor | Medium | Open — reported 2026-08-23 |
-| BUG-005 | Cancelled payment shows untranslated "Pembayaran cancelled" | Minor | Low | Open — reported 2026-08-23 |
-| BUG-006 | Admin dashboard reports the platform's total revenue as "Free" | Minor | Medium | Open — reported 2026-09-07 |
+| BUG-003 | Choosing lesson type "Quiz" crashes the add-lesson dialog — quiz lessons cannot be created | Major | High | **Fixed — verified 2026-09-18** |
+| BUG-004 | Video lesson form rejects the relative video URL the seed itself uses | Minor | Medium | **Fixed — verified 2026-09-18** |
+| BUG-005 | Cancelled payment shows untranslated "Pembayaran cancelled" | Minor | Low | **Fixed — verified 2026-09-18** |
+| BUG-006 | Admin dashboard reports the platform's total revenue as "Free" | Minor | Medium | **Fixed — verified 2026-09-18** |
+| BUG-007 | No toast host on the public pages, so course-page confirmations and errors are silently dropped | Major | High | Open — reported 2026-09-10 |
 
 ---
 
@@ -181,16 +182,25 @@ which points at the QUIZ branch of the dialog rendering a form control outside t
 The dialog stays open and shows the fields a quiz lesson needs, so the lesson can be saved
 and an empty quiz created for it.
 
-**Actual result**
+**Actual result (at the time of reporting)**
 
 The dialog closes immediately. `useFormField should be used within <FormField>` is logged to
 the console and no `Lecture` row of type `QUIZ` is created.
 
+**Resolution — verified 2026-09-18**
+
+Fixed: the QUIZ branch of `lesson-form-dialog.tsx` no longer renders a form control outside
+`FormField` — it now shows a plain notice ("Soal quiz diisi di quiz builder setelah lesson
+dibuat.") and lets the same submit path save the lecture. Verified end to end against the
+running SUT: selecting Quiz keeps the dialog open, submitting logs no console error, closes
+the dialog, and adds a `Lecture` row of type `QUIZ` (with its accompanying empty `Quiz` row)
+to the course.
+
 **Automation impact**
 
 AUTOMATION_PLAN.md §5.11 lists "Instructor can add QUIZ lesson (auto-creates empty quiz)".
-That scenario is **not** in `features/instructor/lesson-management.feature` — there is no way
-to make it pass without asserting the broken behaviour. Add it once this is fixed.
+That scenario is still **not** in `features/instructor/lesson-management.feature` — add it,
+and an `addQuizLesson` action to `LessonManagerPage`, now that the flow works.
 
 ---
 
@@ -223,7 +233,7 @@ and a course built through the UI can never match the shape of the seeded course
 Either the relative path is accepted (it resolves against the app's own origin, exactly as
 the seeded lectures do), or the seed stops using a value the form considers invalid.
 
-**Actual result**
+**Actual result (at the time of reporting)**
 
 Field error "URL video tidak valid"; the lesson is not saved. Confirm the contradiction with:
 
@@ -232,11 +242,19 @@ SELECT DISTINCT "videoUrl" FROM "Lecture" WHERE "videoUrl" IS NOT NULL;
 -- /sample-lecture.mp4
 ```
 
+**Resolution — verified 2026-09-18**
+
+Fixed: `src/schemas/lesson.ts` now validates `videoUrl` against
+`/^(https?:\/\/|\/).+/i`, accepting a same-origin relative path alongside an absolute URL.
+Verified end to end against the running SUT: submitting `/sample-lecture.mp4` — the exact
+value the seed stores — saves the lesson with no field error.
+
 **Automation impact**
 
 `support/test-data.ts` uses an absolute placeholder (`SCRATCH_LESSON_VIDEO_URL`) so the
-lesson-management scenarios can get past validation. Change it back to a relative path when
-this is fixed.
+lesson-management scenarios could get past the old validation. Change it back to a relative
+path (e.g. `/sample-lecture.mp4`) now that the form accepts it, so the automated course
+shape matches the seeded one.
 
 ---
 
@@ -272,16 +290,23 @@ does not have this problem. Two related details on the same screen:
 Indonesian copy for the cancelled state (e.g. "Pembayaran dibatalkan"), and a status testid
 that names the state it represents.
 
-**Actual result**
+**Actual result (at the time of reporting)**
 
 "Pembayaran cancelled", inside an element with testid `status-failed`, while
 `detail-status` reads `CANCELLED`.
 
-**Automation impact**
+**Resolution — verified 2026-09-18**
 
-`steps/student/checkout.steps.ts` maps the business phrase "cancelled" onto the
-`status-failed` testid and the `CANCELLED` stored status, with a comment pointing here.
-Update that map when the testid is renamed.
+Fixed: the cancelled state now renders its own heading, "Pembayaran dibatalkan", inside an
+element with testid `status-cancelled` (`src/app/(student)/checkout/status/page.tsx`),
+distinct from the genuine `status-failed` branch used for an actual FAILED transaction.
+Verified end to end against the running SUT: simulating a cancel shows "Pembayaran
+dibatalkan" under `status-cancelled`, with `detail-status` reading `CANCELLED` — one
+vocabulary for the outcome instead of two.
+
+`steps/student/checkout.steps.ts` mapped the business phrase "cancelled" onto the
+`status-failed` testid as a workaround; updated to map onto `status-cancelled` now that the
+testid matches the state it represents.
 
 ---
 
@@ -327,7 +352,7 @@ zero as a zero one card to the left.
 
 A currency figure for the amount taken — "Rp 0" — so the card always reads as a sum.
 
-**Actual result**
+**Actual result (at the time of reporting)**
 
 The card reads "Total revenue" / "Free". Confirmed via the rendered testids:
 
@@ -338,10 +363,77 @@ stat-revenue      => "Free"     <-- no figure at all
 stat-published    => "22"
 ```
 
+**Resolution — verified 2026-09-18**
+
+Fixed: the dashboard (`src/app/(admin)/admin/page.tsx`) now renders `stat-revenue` through a
+new `formatCurrency()` helper (`src/lib/format.ts`) — "always a currency figure, never
+'Free'" — instead of the course-price `formatPrice()`. Verified end to end against the
+running SUT with zero completed transactions: `stat-revenue` reads **"Rp 0"**.
+
 **Automation impact**
 
-`steps/admin/admin-panel.steps.ts` asserts the revenue card is present but deliberately
-does **not** read a figure from it, with a comment pointing here. Change that to assert a
-currency figure when this is fixed. Found while replacing that scenario's previous
-cross-page total reconciliation with a plain "the dashboard is populated" check — the
-weaker assertion surfaced a real defect the stricter one had been walking straight past.
+`steps/admin/admin-panel.steps.ts` asserted the revenue card is present but deliberately
+did **not** read a figure from it, with a comment pointing here; `getRevenueLabel()` on
+`AdminDashboardPage` returned raw text for the same reason. Now that the card always carries
+a figure, fold revenue into `getPlatformTotals()`/`readCount()` and assert a number
+(`>= 0`) like the other three cards, instead of asserting only presence.
+
+---
+
+## BUG-007
+
+**Title:** The public course page has no toast host, so every toast raised there is silently dropped — including the "certificate download failed" error
+
+**Reported:** 2026-09-10
+**Severity:** Major — not the cosmetic bug it first looks like. A review saves with no confirmation, which the refreshed list partly covers for. But the same page's certificate download reports **failure** only through a toast, so a download that fails tells the user nothing at all: the button finishes its spinner and the page sits there as if nothing was asked.
+**Priority (suggested):** High
+**Reproducibility:** Always
+**Environment:** Chromium (Playwright), SUT at http://localhost:3002 (`course-platform-app` container, Next.js App Router), Postgres 16 (`course-platform-db`), standard seed data, role STUDENT (`student2@example.com`)
+
+**Detail**
+
+`<Toaster />` (sonner) is mounted in three of the four route-group layouts:
+
+```
+src/app/(student)/layout.tsx:22      <Toaster />
+src/app/(instructor)/layout.tsx:39   <Toaster />
+src/app/(admin)/layout.tsx:42        <Toaster />
+src/app/(marketing)/layout.tsx       -- missing --
+```
+
+The public course page `/courses/[slug]` lives in the `(marketing)` group, and two of the
+components it renders raise toasts and nothing else:
+
+- `review-form.tsx` — `toast.success("Review tersimpan")` on save and `"Review dihapus"` on delete. Both vanish. The form's *validation* errors are fine: they render inline in `review-error`.
+- `download-certificate-button.tsx` — `toast.error(...)` is the **only** report of a failed download. The button re-enables and there is no other signal.
+
+So on this page a success is unconfirmed and a failure is invisible.
+
+**Steps to Reproduce**
+
+1. Sign in as `student2@example.com` (`Password123!`), enrolled in any published course.
+2. Open that course's public page, `/courses/{slug}`.
+3. Give a star rating and press **Kirim Review**.
+4. Watch for a confirmation toast.
+5. Confirm the write landed anyway: `SELECT count(*) FROM "Review" WHERE "courseId"='{id}';` returns 1.
+6. For the more serious half: on a course that is *not* complete, call `GET /api/certificates/{courseId}` — it answers 404 — and note that the button's failure path has nowhere to report it.
+
+**Expected result**
+
+The confirmation and error toasts appear, as they do for the same components' siblings inside `/dashboard`, `/instructor` and `/admin`.
+
+**Actual result**
+
+No toast ever renders on the page. Verified with the review flow: the review is created
+(`4|Materinya jelas dan runut.` in the database) and the list refreshes, while
+`getByTestId('success-toast')` never appears — a 30s explicit wait times out. Deleting
+behaves the same way.
+
+**Automation impact**
+
+`features/student/review.feature` asserts outcomes through the review list and the form's
+own state (which flips to "Perbarui" with a delete button once a review exists) rather
+than through a toast, and the steps carry a comment pointing here. Add toast assertions
+once the host is mounted. Note also that the certificate scenarios exercise only the
+successful download, so they do not cover the silent-failure half of this bug — worth a
+scenario once there is something to assert.

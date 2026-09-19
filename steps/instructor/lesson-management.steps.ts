@@ -37,6 +37,10 @@ When('I add a reading lesson called {string}', async ({ page }, title) => {
     await new LessonManagerPage(page).addReadingLesson(title, 'Reading body for the automated suite.');
 });
 
+When('I add a quiz lesson called {string}', async ({ page }, title) => {
+    await new LessonManagerPage(page).addQuizLesson(title);
+});
+
 When('I move the first lesson down', async ({ page }) => {
     await new LessonManagerPage(page).moveLessonDown(0);
 });
@@ -64,6 +68,14 @@ Then('the course should have {int} lessons', async ({ page }, expectedCount) => 
 Then('{string} should be the last lesson', async ({ page }, title) => {
     const order = await new LessonManagerPage(page).getLessonTitlesInOrder();
     expect(order[order.length - 1]).toBe(title);
+});
+
+Then('{string} should offer its quiz builder', async ({ page }, title) => {
+    const lessons = new LessonManagerPage(page);
+    const order = await lessons.getLessonTitlesInOrder();
+    const position = order.indexOf(title);
+    expect(position, `lesson not listed: "${title}"`).toBeGreaterThanOrEqual(0);
+    expect(await lessons.hasQuizBuilderLink(position)).toBe(true);
 });
 
 Then('the lesson order should be {string}', async ({ page }, expectedOrder) => {

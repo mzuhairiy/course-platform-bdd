@@ -26,17 +26,13 @@ Then('I should see the platform totals', async ({ page }) => {
     const dashboard = new AdminDashboardPage(page);
     expect(await dashboard.isSummaryShown()).toBe(true);
 
+    // Revenue used to render a zero total as the word "Free" instead of a
+    // figure (BUG-006, fixed) — it now carries a number like every other card,
+    // so all four totals go through the same presence/non-negative check.
     for (const [name, figure] of Object.entries(await dashboard.getPlatformTotals())) {
         expect(figure, `the "${name}" total is missing from the summary`).not.toBeNaN();
         expect(figure, `the "${name}" total is negative`).toBeGreaterThanOrEqual(0);
     }
-
-    // Revenue is checked for presence only, not for a figure: the SUT puts the
-    // total through its course-price formatter, which renders zero as the word
-    // "Free", so "Total revenue Free" is what a platform with no completed
-    // payments shows today (BUG-006). Assert a currency figure here once that
-    // is fixed.
-    expect(await dashboard.getRevenueLabel()).not.toBe('');
 });
 
 Then('I should see how many courses sit at each status', async ({ page }) => {

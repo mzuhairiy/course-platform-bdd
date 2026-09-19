@@ -112,6 +112,15 @@ export class LessonManagerPage extends BasePage {
         await this.saveLesson();
     }
 
+    // A QUIZ lesson needs no fields of its own here — the quiz itself is built
+    // afterwards in the quiz builder the SUT creates for it.
+    async addQuizLesson(title: string) {
+        await this.openAddDialog();
+        await this.titleInput.fill(title);
+        await this.typeSelect.selectOption('QUIZ');
+        await this.saveLesson();
+    }
+
     private async openAddDialog() {
         await this.addLessonButton.click();
         await this.formDialog.waitFor({ state: 'visible' });
@@ -131,6 +140,13 @@ export class LessonManagerPage extends BasePage {
 
     async getLessonCount() {
         return this.lessonItems.count();
+    }
+
+    // True once the lesson at this position offers "Edit Quiz →" — the SUT
+    // only renders that link once it has auto-created the empty Quiz row that
+    // goes with a QUIZ lecture, so this doubles as proof that row exists.
+    async hasQuizBuilderLink(position: number) {
+        return (await this.lessonItems.nth(position).getByTestId('edit-quiz-link').count()) > 0;
     }
 
     async isEmpty() {

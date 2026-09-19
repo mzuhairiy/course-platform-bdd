@@ -12,6 +12,7 @@ export type CourseTotals = {
 export type PlatformTotals = {
     users: number;
     transactions: number;
+    revenue: number;
     publishedCourses: number;
 };
 
@@ -73,15 +74,9 @@ export class AdminDashboardPage extends BasePage {
         return {
             users: await this.readCount(this.userTotal),
             transactions: await this.readCount(this.transactionTotal),
+            revenue: await this.readCount(this.revenueTotal),
             publishedCourses: await this.readCount(this.publishedCourseTotal),
         };
-    }
-
-    // Returned as raw text rather than a number: the SUT renders a zero total
-    // as the word "Free" (BUG-006), so there is not always a figure to read.
-    async getRevenueLabel() {
-        await this.revenueTotal.waitFor({ state: 'visible' });
-        return ((await this.revenueTotal.textContent()) ?? '').trim();
     }
 
     async getCourseTotals(): Promise<CourseTotals> {
