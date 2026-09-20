@@ -7,6 +7,34 @@
 
 ---
 
+## Status Implementasi (2026-09-20)
+
+Section 5 di bawah ini adalah rencana awal. Sekarang **semua 12 feature area sudah 100%
+diimplementasikan** (129 test case, 129 lulus di full run terakhir), dengan beberapa
+penyesuaian dari rencana awal — dicatat di sini, bukan di-inline ke tiap section supaya
+rencana asli tetap terbaca sebagai jejak keputusan:
+
+- **§5.6 Certificate** — dua scenario verifikasi (`/verify` valid, `/verify` nomor tidak
+  ditemukan) sempat di-skip karena SUT belum punya route `/verify`. SUT sudah diperbaiki
+  (lihat commit terkait); ketiga scenario verifikasi (valid, tidak ditemukan, format salah)
+  sekarang ada di `certificate.feature`.
+- **§5.4/5.5/5.7/5.10** — gap yang sempat tercatat (resume ke lecture belum selesai, quiz
+  timer/idempotency/attempt-history/access-before-enrolling, checkout double-submit, delete
+  course dengan enrollment aktif) semua sudah ditutup. Dicek dulu ke source SUT sebelum
+  ditulis test — semuanya ternyata sudah diimplementasikan dengan benar di sisi SUT, jadi
+  murni penambahan test coverage, bukan perbaikan bug.
+- Struktur folder aktual berbeda sedikit dari rencana: Admin Panel (§5.12) terpecah jadi
+  3 feature file (`admin-panel`, `course-moderation`, `user-management`) karena scope-nya
+  lebih luas dari draft awal; Quiz Engine punya file tambahan `quiz-timer.feature` untuk
+  scenario yang butuh fixture course berwaktu terpisah, supaya tidak race dengan
+  `quiz.feature` saat jalan paralel.
+- Sisa gap minor yang belum ditutup: scenario positif "instructor bisa move lesson up" di
+  §5.11 (yang ada baru "move down" positif + "cannot move up" sebagai kasus batas).
+
+Detail bug yang ditemukan dan status resolusinya ada di `BUGS.md`.
+
+---
+
 ## 1. Tech Stack Automation
 
 | Layer | Choice |
